@@ -1,6 +1,5 @@
 import numpy as np
 import imageio
-import matplotlib.pyplot as plt
 import os
 import argparse
 import pickle
@@ -20,7 +19,7 @@ def RGB2GRAY(im):
     :param im: The image that should be converted to a gray image
     :return: The gray image
     """
-    gray_im = 0.2126*im[0, :, :, 0] + 0.7152*im[0, :, :, 1] + 0.0722*im[0, :, :, 2]
+    gray_im = 0.2126 * im[0, :, :, 0] + 0.7152 * im[0, :, :, 1] + 0.0722 * im[0, :, :, 2]
     gray_im = tf.tile(gray_im[..., tf.newaxis], [1, 1, 3])
     return gray_im[tf.newaxis, ...]
 
@@ -42,8 +41,8 @@ def optimize_latent_codes(args):
                                            method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
     generated_gray_img = tf.image.resize_images(RGB2GRAY(generated_img),
-                                                   tuple(args.img_size),
-                                                   method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+                                                tuple(args.img_size),
+                                                method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
     generated_img_for_display = tf.saturate_cast(generated_img, tf.uint8)
 
