@@ -1,5 +1,5 @@
 # Style-GAN-Prior
-This project is an extension to the article [Style Generator Inversion for Image Enhancement and Animation](http://www.vision.huji.ac.il/style-image-prior) by Aviv Gabbay and Yedid Hoshen.
+This project is an extension to the article [Style Generator Inversion for Image Enhancement and Animation](http://www.vision.huji.ac.il/style-image-prior) by Aviv Gabbay and Yedid Hoshen [(GitHub)](https://github.com/avivga/style-image-prior).
 Two additional applications are introduced to this method: Image deblurring using a known blur kernel and image recoloring of gray images to RGB images.
 
 
@@ -28,7 +28,7 @@ Input image:
 
 
 ## Recoloring
-In this task, gray images are recolored using the style-GAN-prior and a known blur kernel.
+In this task, gray images are recolored using the style-GAN-prior.
 The conversion of an RGB image to a gray image was performed using the formula: Y = 0.2126R + 0.7152G + 0.0722B
 
 | RGB Image | Gray Image | Recolored Image |
