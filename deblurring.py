@@ -1,11 +1,11 @@
 import numpy as np
 import imageio
-import matplotlib.pyplot as plt
 import os
 import argparse
 import pickle
 from tqdm import tqdm
 import tensorflow as tf
+import cv2
 import dnnlib
 import dnnlib.tflib as tflib
 import config
@@ -16,6 +16,7 @@ STYLEGAN_MODEL_URL = 'https://drive.google.com/uc?id=1MEGjdvVpUsu1jB4zrXZN7Y4kBB
 GAUSSIAN_KERNEL_SIZE = 5
 MOTION_KERNEL_SIZE = 7
 UNIFORM_KERNEL_SIZE = 7
+MEDIAN_KERNEL_SIZE = 3
 
 
 def blur_image(im, blur_kernel):
@@ -25,6 +26,10 @@ def blur_image(im, blur_kernel):
     :param blur_kernel: The blur kernel that should be used to blur the input image
     :return: The blurred image
     """
+    if blur_kernel == 'median':
+        blurred_im = cv2.medianBlur(tf.Session().run(im[0]), MEDIAN_KERNEL_SIZE)
+        blurred_tensor = tf.convert_to_tensor(blurred_im)
+        return blurred_tensor[tf.newaxis, ...]
     return tf.nn.depthwise_conv2d(im, blur_kernel, [1, 1, 1, 1],
                                   padding='SAME', data_format='NHWC')
 
@@ -87,6 +92,8 @@ def create_blur_kernel(blur_method):
         return motion_kernel(blur_method, MOTION_KERNEL_SIZE)
     elif blur_method == 'uniform':
         return uniform_kernel(UNIFORM_KERNEL_SIZE)
+    elif blur_method == 'median':
+        return 'median'
     else:
         raise Exception('ERROR: Incorrect kernel - optional blur kernels are '
                         'gaussian/motion-horizontal/motion-vertical/uniform')
@@ -177,15 +184,18 @@ def create_blurry_imgs(args):
         kernel = motion_kernel(blur_method, MOTION_KERNEL_SIZE)
     elif blur_method == 'uniform':
         kernel = uniform_kernel(UNIFORM_KERNEL_SIZE)
+    elif blur_method == 'median':
+        kernel = 'median'
     else:
         raise Exception('ERROR: Invalid kernel input - optional kernel names are '
                         'gaussian/motion-horizontal/motion-vertical/uniform.')
 
-    print(kernel)
+    print(f'KERNEL: {kernel[0]}')
     for img_name in img_names:
         im = imageio.imread(os.path.join(args.original_imgs_dir, img_name))
         orig_img = tf.constant(im[np.newaxis, ...], dtype=tf.float32)
         blurred_im = blur_image(orig_img, kernel)
+        print('BEFORE SAVING BLURRY IM')
         imageio.imwrite(os.path.join(args.blurred_imgs_dir, f'{blur_method}-{img_name}'), tf.Session().run(blurred_im[0]))
 
 
@@ -194,12 +204,11 @@ if __name__ == '__main__':
     parser.add_argument('--blurred-imgs-dir', type=str, required=True)
     parser.add_argument('--deblurred-imgs-dir', type=str, required=True)
     parser.add_argument('--latents-dir', type=str, required=True)
+    parser.add_argument('--blur-kernel', type=str, required=True)
 
     parser.add_argument('--original-imgs-dir', type=str, default='')
-    parser.add_argument('--blur-kernel', type=str, default='')
 
     parser.add_argument('--blurred-img-size', type=int, nargs=2, default=(256, 256))
-    parser.add_argument('--deblurred-img-size', type=int, nargs=2, default=(256, 256))
     parser.add_argument('--learning-rate', type=float, default=1e-3)
     parser.add_argument('--total-iterations', type=int, default=1000)
 
